@@ -49,8 +49,7 @@ Balanced dataset (~20K images) used for fine-tuning.
 FG-Net
 Small dataset used for final testing on unseen data.
 ```text
-⚠️ **Note:**
-Datasets are not included in this repository due to size and licensing.
+⚠️ Note:Datasets are not included in this repository due to size and licensing.
 ```
 ## Model Architecture
 
@@ -124,7 +123,7 @@ Typical results observed:
 - FG-Net test accuracy: ~40%
 ```
 ```text
-**Note** ⚠️ Performance varies depending on dataset quality and preprocessing.
+⚠️ Note: Performance varies depending on dataset quality and preprocessing.
 ```
 
 ## Evaluation Metrics
