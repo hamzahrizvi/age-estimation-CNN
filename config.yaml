@@ -1,15 +1,21 @@
 paths:
-  wiki_csv: data/wiki.csv
-  utk_csv: data/utk.csv
-  fgnet_csv: data/fgnet.csv
-  models: models/
-  outputs: outputs/
+  wiki_csv: data/wiki_final_file.csv
+  utk_csv: data/utk_final.csv
+  fgnet_csv: data/fgnet_final_file.csv
+  models_dir: models
+  outputs_dir: outputs
 
 training:
-  batch_size: 32
   image_size: 224
+  batch_size: 32
   epochs: 50
   learning_rate: 0.001
 
+fine_tuning:
+  epochs: 30
+  learning_rate: 0.00001
+
 model:
   num_classes: 18
+  dense_units: 512
+  dropout_rate: 0.5
