@@ -86,35 +86,35 @@ The model uses medically-inspired age groupings:
 | 7     | 49–64    |
 | 8     | 65+      |
 ```
-Installation
+## Installation
 
-## Clone the repository:
+### Clone the repository:
 ```bash
 git clone https://github.com/YOUR_USERNAME/age-estimation-dissertation.git
 cd age-estimation-dissertation
 ```
-## Create environment and install dependencies:
+### Create environment and install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-## How to Run
-### 1. Preprocessing
+### How to Run
+#### 1. Preprocessing
 ```bash
 python src/preprocessing.py
 ```
-### 2. Train on WIKI-IMDB
+#### 2. Train on WIKI-IMDB
 ```bash
 python src/train.py
 ```
-### 3. Fine-tune on UTKFace
+#### 3. Fine-tune on UTKFace
 ```bash
 python src/finetune.py
 ```
-### 4. Evaluate on FG-Net
+#### 4. Evaluate on FG-Net
 ```bash
 python src/evaluate.py
 ```
-## Results
+### Results
 ```text
 Typical results observed:
 
