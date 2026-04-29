@@ -53,11 +53,11 @@ Small dataset used for final testing on unseen data.
 ```
 ## Model Architecture
 
-Base model:
+### Base model:
 
 VGG16 (ImageNet pretrained)
 
-Custom layers:
+### Custom layers:
 
 Global Average Pooling
 Dense layer(s)
@@ -68,7 +68,7 @@ Output classes:
 
 9 age groups × 2 genders = 18 classes
 
-Age Groups
+### Age Groups
 
 The model uses medically-inspired age groupings:
 
@@ -168,14 +168,26 @@ Typical results observed:
 ```
 ## Project Structure
 ```text
-├── notebooks/
 ├── src/
+│   ├── preprocessing.py
+│   ├── dataset.py
+│   ├── model.py
+│   ├── train.py
+│   ├── finetune.py
+│   ├── evaluate.py
+│   ├── knn_classifier.py
+│   └── utils.py
+├── notebooks/
+│   ├── Age_Estimation_Main.ipynb
+│   └── Model h5 (Wiki_IMDB transfer learning).ipynb
 ├── models/
+│   └── .gitkeep
 ├── outputs/
-├── README.md
+├── config.yaml
 ├── requirements.txt
 ├── .gitignore
 ├── LICENSE
+└── README.md
 ``` 
 ## License
 
