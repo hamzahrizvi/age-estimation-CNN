@@ -1,8 +1,8 @@
-# age-estimation-CNN
+# Age Estimation using Deep Learning (Dissertation Project)
 
 ## Overview
 
-This project implements a deep learning pipeline for **facial age estimation and gender classification** using Convolutional Neural Networks (CNNs). The approach combines:
+This project implements a full pipeline for facial age estimation and gender classification using deep learning. It includes:
 
 - Face detection and alignment (MTCNN / alignment tools)
 - Transfer learning using VGG16
@@ -15,6 +15,7 @@ The goal is to improve age estimation accuracy by incorporating:
 - Gender-based classification
 - Multi-dataset training
 
+The project focuses on improving robustness by handling real-world image issues such as blur, lighting, pose variation, and dataset imbalance.
 ---
 
 ## Project Pipeline
@@ -22,11 +23,11 @@ The goal is to improve age estimation accuracy by incorporating:
 ```text
 Raw Images
     ↓
-Face Detection + Alignment (MTCNN)
+Face Detection + Alignment + Face Cleaning + Quality Filtering (MTCNN)
     ↓
 Image Preprocessing (Resize to 224x224)
     ↓
-CSV Creation (Path, Age, Gender, Age Group)
+CSV Creation (Path, Age, Gender, Age Group, Quality Scores)
     ↓
 WIKI-IMDB Training (Transfer Learning - VGG16)
     ↓
@@ -51,6 +52,63 @@ Small dataset used for final testing on unseen data.
 ```text
 ⚠️ Note:Datasets are not included in this repository due to size and licensing.
 ```
+## Dataset Cleaning
+### Face detection using MTCNN
+###Rejects:
+- No face
+- Multiple faces (optional)
+- Extreme blur
+- Extreme brightness/darkness
+- Side-profile faces (pose filtering)
+### Computes:
+- Blur score
+- Brightness score
+- Face area ratio
+- Detection confidence
+- Overall quality score
+- Saves rejected image previews for inspection
+
+### Example:
+```PowerShell
+py -3.8 src\clean_all_faces_from_folder.py --source "path_to_wiki_crop" --output "data\cleaned_faces\wiki" --log "outputs\wiki_cleaning_report.csv" --dataset-name "wiki"
+
+# FG-Net
+py -3.8 src\clean_all_faces_from_folder.py --source "path_to_fgnet" --output "data\cleaned_faces\fgnet" --log "outputs\fgnet_cleaning_report.csv" --dataset-name "fgnet"
+
+# IMDB
+py -3.8 src\clean_all_faces_from_folder.py --source "path_to_imdb_crop" --output "data\cleaned_faces\imdb" --log "outputs\imdb_cleaning_report.csv" --dataset-name "imdb"
+
+# UTKFace
+py -3.8 src\clean_all_faces_from_folder.py --source "data\UTKFace" --output "data\cleaned_faces\utk" --log "outputs\utk_cleaning_report.csv" --dataset-name "utk"
+```
+
+## CSV Creation
+### Interactive filename parsing using regex
+### Supports multiple datasets (UTKFace, FG-Net, custom)
+### Outputs:
+- age, gender, age_group
+- final_label (18 classes)
+- quality_score
+- face metrics
+
+### Example (UTKFace):
+```PowerShell
+py -3.8 src\create_dataset_csv_interactive.py ^
+  --source "data\cleaned_faces\utk" ^
+  --output "data\utk_final.csv" ^
+  --dataset-name "utkface" ^
+  --pattern "^(?P<age>\d+)_(?P<gender>\d+)_(?P<race>\d+)_.*$"
+```
+### Example (FG-Net):
+```PowerShell
+py -3.8 src\create_dataset_csv_interactive.py ^
+  --source "data\cleaned_faces\fgnet" ^
+  --output "data\fgnet_final.csv" ^
+  --dataset-name "fgnet" ^
+  --pattern "^.*A(?P<age>\d+).*$"
+```
+
+
 ## Model Architecture
 
 ### Base model:
@@ -92,6 +150,7 @@ The model uses medically-inspired age groupings:
 ```bash
 git clone https://github.com/YOUR_USERNAME/age-estimation-dissertation.git
 cd age-estimation-dissertation
+pip install -r requirements.txt
 ```
 ### Create environment and install dependencies:
 ```bash
@@ -169,6 +228,8 @@ Typical results observed:
 ## Project Structure
 ```text
 ├── src/
+│   ├── clean_all_faces_from_folder.py
+│   ├── create_dataset_csv_interactive.py
 │   ├── preprocessing.py
 │   ├── dataset.py
 │   ├── model.py
@@ -188,7 +249,15 @@ Typical results observed:
 ├── .gitignore
 ├── LICENSE
 └── README.md
-``` 
+```
+## Installation
+
+```Bash
+git clone https://github.com/YOUR_USERNAME/age-estimation-dissertation.git
+cd age-estimation-dissertation
+pip install -r requirements.txt
+```
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
