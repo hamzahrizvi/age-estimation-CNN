@@ -54,7 +54,7 @@ Small dataset used for final testing on unseen data.
 ```
 ## Dataset Cleaning
 ### Face detection using MTCNN
-###Rejects:
+### Rejects:
 - No face
 - Multiple faces (optional)
 - Extreme blur
