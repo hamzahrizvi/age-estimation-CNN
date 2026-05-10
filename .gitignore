@@ -1,0 +1,39 @@
+# Data and generated datasets
+data/
+datasets/
+raw_data/
+processed_data/
+cropped_images/
+*.zip
+*.tar
+*.gz
+
+# Large model and array files
+models/*.h5
+models/*.keras
+models/*.pkl
+models/*.joblib
+*.npy
+*.npz
+
+# Notebook cache
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Secrets and local config
+.env
+config.local.yaml
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Outputs
+outputs/logs/
+outputs/runs/
