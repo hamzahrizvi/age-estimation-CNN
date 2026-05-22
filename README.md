@@ -123,6 +123,6 @@ This experiment was useful because it showed:
 
 The next planned improvements are:
 
--weighted class
+- weighted class
 
 This branch is kept as an experiment because it documents an important modelling decision: class balancing must be handled carefully, and removing too much majority-class data can reduce model performance.
