@@ -9,8 +9,6 @@ from sklearn.model_selection import train_test_split
 
 IMG_SIZE = 224
 NUM_FINE_CLASSES = 7
-NUM_COARSE_CLASSES = 3
-NUM_GENDER_CLASSES = 2
 
 
 def enable_gpu_memory_growth():
@@ -19,6 +17,8 @@ def enable_gpu_memory_growth():
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
         print(f"Using GPU: {gpus}")
+    else:
+        print("No GPU found. Training will use CPU.")
 
 
 def load_dataframe(csv_path):
@@ -49,43 +49,16 @@ def load_dataframe(csv_path):
     df = df[df["full_path"].apply(lambda x: os.path.exists(str(x)))]
     print(f"Valid image paths: {len(df)} / {before}")
 
-    print("\nFine-age distribution:")
+    print("\nFine age distribution:")
     print(df["fine_age_group"].value_counts().sort_index())
 
+    print("\nCoarse age distribution:")
+    print(df["coarse_age_group"].value_counts().sort_index())
+
+    print("\nGender distribution:")
+    print(df["gender"].value_counts().sort_index())
+
     return df.reset_index(drop=True)
-
-
-def balance_dataframe(df, balance_col=None, max_per_class=None):
-    if balance_col is None or max_per_class is None:
-        return df
-
-    if balance_col not in df.columns:
-        raise ValueError(f"Balance column not found: {balance_col}")
-
-    print(f"\nBalancing dataset by: {balance_col}")
-    print(f"Max samples per class: {max_per_class}")
-
-    print("\nBefore balancing:")
-    print(df[balance_col].value_counts().sort_index())
-
-    balanced_parts = []
-
-    for class_value, class_df in df.groupby(balance_col):
-        if len(class_df) > max_per_class:
-            class_df = class_df.sample(n=max_per_class, random_state=42)
-
-        balanced_parts.append(class_df)
-
-    balanced_df = pd.concat(balanced_parts, ignore_index=True)
-    balanced_df = balanced_df.sample(frac=1, random_state=42).reset_index(drop=True)
-
-    print("\nAfter balancing:")
-    print(balanced_df[balance_col].value_counts().sort_index())
-
-    print(f"\nRows before balancing: {len(df)}")
-    print(f"Rows after balancing: {len(balanced_df)}")
-
-    return balanced_df
 
 
 def make_dataset(df, batch_size, image_size, training):
@@ -93,12 +66,12 @@ def make_dataset(df, batch_size, image_size, training):
 
     gender = tf.keras.utils.to_categorical(
         df["gender"].values,
-        num_classes=NUM_GENDER_CLASSES
+        num_classes=2
     )
 
     coarse = tf.keras.utils.to_categorical(
         df["coarse_age_group"].values,
-        num_classes=NUM_COARSE_CLASSES
+        num_classes=3
     )
 
     fine = tf.keras.utils.to_categorical(
@@ -112,17 +85,37 @@ def make_dataset(df, batch_size, image_size, training):
         "fine_age_output": fine,
     }
 
-    ds = tf.data.Dataset.from_tensor_slices((paths, labels))
+    ds = tf.data.Dataset.from_tensor_slices(
+        (
+            paths,
+            labels,
+        )
+    )
 
     def load_image(path, labels):
         image = tf.io.read_file(path)
-        image = tf.image.decode_image(image, channels=3, expand_animations=False)
-        image = tf.image.resize(image, (image_size, image_size))
+
+        image = tf.image.decode_image(
+            image,
+            channels=3,
+            expand_animations=False
+        )
+
+        image = tf.image.resize(
+            image,
+            (image_size, image_size)
+        )
+
         image = tf.cast(image, tf.float32)
+
         image = tf.keras.applications.efficientnet.preprocess_input(image)
+
         return image, labels
 
-    ds = ds.map(load_image, num_parallel_calls=tf.data.AUTOTUNE)
+    ds = ds.map(
+        load_image,
+        num_parallel_calls=tf.data.AUTOTUNE
+    )
 
     if training:
         ds = ds.shuffle(buffer_size=4096)
@@ -133,7 +126,10 @@ def make_dataset(df, batch_size, image_size, training):
             image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
             return image, labels
 
-        ds = ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
+        ds = ds.map(
+            augment,
+            num_parallel_calls=tf.data.AUTOTUNE
+        )
 
     ds = ds.batch(batch_size)
     ds = ds.prefetch(tf.data.AUTOTUNE)
@@ -183,22 +179,25 @@ def build_model(image_size=224, learning_rate=1e-4):
 
     gender_branch = tf.keras.layers.Dense(128, activation="relu")(shared)
     gender_branch = tf.keras.layers.Dropout(0.25)(gender_branch)
+
     gender_output = tf.keras.layers.Dense(
-        NUM_GENDER_CLASSES,
+        2,
         activation="softmax",
         name="gender_output"
     )(gender_branch)
 
     coarse_branch = tf.keras.layers.Dense(128, activation="relu")(shared)
     coarse_branch = tf.keras.layers.Dropout(0.25)(coarse_branch)
+
     coarse_age_output = tf.keras.layers.Dense(
-        NUM_COARSE_CLASSES,
+        3,
         activation="softmax",
         name="coarse_age_output"
     )(coarse_branch)
 
     fine_branch = tf.keras.layers.Dense(256, activation="relu")(shared)
     fine_branch = tf.keras.layers.Dropout(0.35)(fine_branch)
+
     fine_age_output = tf.keras.layers.Dense(
         NUM_FINE_CLASSES,
         activation="softmax",
@@ -296,15 +295,13 @@ def main():
 
     parser.add_argument("--model-in", default=None)
     parser.add_argument("--resume-from", default=None)
+    parser.add_argument("--initial-epoch", type=int, default=0)
 
     parser.add_argument("--epochs", type=int, default=30)
-    parser.add_argument("--initial-epoch", type=int, default=0)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
 
     parser.add_argument("--fine-tune", action="store_true")
-    parser.add_argument("--balance", default=None, choices=["fine_age_group", "coarse_age_group", "gender"])
-    parser.add_argument("--max-per-class", type=int, default=None)
 
     args = parser.parse_args()
 
@@ -314,12 +311,6 @@ def main():
     enable_gpu_memory_growth()
 
     df = load_dataframe(args.csv)
-
-    df = balance_dataframe(
-        df,
-        balance_col=args.balance,
-        max_per_class=args.max_per_class
-    )
 
     train_df, val_df = train_test_split(
         df,
@@ -349,7 +340,7 @@ def main():
         print(f"Loading full model: {args.model_in}")
         model = tf.keras.models.load_model(args.model_in)
     else:
-        print("Building new EfficientNet hierarchical 7-class model...")
+        print("Building new EfficientNet hierarchical model...")
         model = build_model(
             image_size=IMG_SIZE,
             learning_rate=args.learning_rate
@@ -392,7 +383,7 @@ def main():
             verbose=1
         ),
         tf.keras.callbacks.CSVLogger(
-            "outputs/hierarchical_7class_balanced_training_log.csv",
+            "outputs/hierarchical_7class_training_log.csv",
             append=True
         )
     ]

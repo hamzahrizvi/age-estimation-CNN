@@ -1,0 +1,2 @@
+model,fine_exact_accuracy,fine_near_accuracy,coarse_accuracy,gender_accuracy
+Hierarchical EfficientNet + UTK fine-tune,0.5786,0.9258,0.8838,0.8746
