@@ -1,5 +1,25 @@
 # Facial Age Estimation with Hierarchical EfficientNet
 
+## TL;DR
+
+Built an end-to-end facial age estimation pipeline using TensorFlow/Keras and EfficientNetB0.
+
+The final model uses hierarchical multi-task learning to predict gender, coarse age group, and fine age group from face images. It was trained on WIKI + IMDB and then fine-tuned on UTKFace.
+
+Best result:
+
+| Metric | Result |
+|---|---:|
+| Fine age exact accuracy | 57.86% |
+| Fine age near-group accuracy (+/-1) | 92.58% |
+| Coarse age accuracy | 88.38% |
+| Gender accuracy | 87.46% |
+
+The project includes dataset cleaning, metadata conversion, GPU training, fine-tuning, evaluation scripts, confusion matrices, and experiment tracking.
+
+
+## Detailed Project Summary
+
 This project is an end-to-end facial age estimation pipeline built with Python, TensorFlow/Keras, and transfer learning.
 
 The project started as a simple age classification experiment and was gradually rebuilt into a more complete machine learning pipeline: dataset cleaning, metadata processing, model training, fine-tuning, evaluation, and experiment tracking.
